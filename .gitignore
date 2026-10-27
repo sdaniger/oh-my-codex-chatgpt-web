@@ -1,0 +1,7 @@
+.DS_Store
+._*
+__MACOSX/
+__pycache__/
+*.pyc
+# Full reproducible runtime and dependencies are inside the ZIP distribution.
+CodexWebGPT-Patcher/payload/versions/6.1.14/runtime/

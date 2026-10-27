@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "6.1.14",
+  "marker": "CODEX_WEB_GPT_LAUNCHER_SESSION_V1",
+  "files": [
+    {
+      "path": "electron/browser-host.cjs",
+      "baseSha256": "d8b758658f18b883f04bb5a9e6ddeb88b4e971dc224d21c5c0f30db8be4aae1b",
+      "sha256": "232c8397461079a3778a5bd19d586017bc462d3c7b191672c0ce8d4f6fc3d068"
+    },
+    {
+      "path": "electron/browser-helper-verifier.cjs",
+      "baseSha256": "ff508b5773cc0f093f2d7a3a8f37fdab39d1af52b3f24a2a1c583dcbd1997a0c",
+      "sha256": "1610c423bd5e28ba63ff3d0a1d03b5f7f942ea5d6dd8bd40b7a3b19fc8c24fb8"
+    },
+    {
+      "path": "electron/main.cjs",
+      "baseSha256": "3cffe7e925f618f0bcd80e47af389635524817695b6e3f8c17afba98d3e13c78",
+      "sha256": "b66d747a364727edf7742d5e9512420717876c69c5a990cf578067a07cf55913"
+    },
+    {
+      "path": "electron/preload.cjs",
+      "baseSha256": "cb17cdbb1f32ded38929d41d9d39e37c5f7b4d4bcf0837e744c570cf6da8dd99",
+      "sha256": "5ce8edb3fc128266337340e371346756673ad3d855711d547f13561359e5e6f1"
+    },
+    {
+      "path": "electron/runtime.cjs",
+      "baseSha256": "16dd9c8ed6d25d903686d65a841d2bda294a53f50d30529c058f65899aebb6a8",
+      "sha256": "aa97cbb748e5f6d0dfb190f832aaa5054def344e4a02c643bb84793c1c61b6c2"
+    },
+    {
+      "path": "electron/state.cjs",
+      "baseSha256": "00448c48ca41c53d7c4f970e68da7215f4d2e651cfac0d6347dc3e200a89047f",
+      "sha256": "2a4554912a79d46dfa114c3420793ff6b2d9fa94d809627d9671e1a53455ceb6"
+    },
+    {
+      "path": "dist/assets/index-D9DkY-ud.js",
+      "baseSha256": "a8886e0b6a192729528a1688866bb307d2a7801a7906645459302e4359458b06",
+      "sha256": "d9fae22ba4b63edf75f8c925b8a2723b02aa96d8e054fc0a4347549b96dfd79c"
+    },
+    {
+      "path": "dist/assets/index-D6FawXKA.css",
+      "baseSha256": "e370ecd37ae6e647b1b2bb6da81eab80ed6c88d3b763038d49a8a978634d6d86",
+      "sha256": "b9d4dc2d56856ff5bfb75043c93d0c6b80a903338526ca4dd830ecd5c6c5e8a3"
+    }
+  ]
+}

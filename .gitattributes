@@ -1,0 +1,2 @@
+# Preserve the checked canonical patch byte-for-byte (its SHA-256 is pinned).
+CodexWebGPT-Patcher/payload/patch/*.patch -whitespace
