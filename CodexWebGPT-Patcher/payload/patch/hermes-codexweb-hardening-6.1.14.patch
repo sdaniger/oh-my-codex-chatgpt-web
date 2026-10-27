@@ -4198,6 +4198,23 @@ index 154a07e..4c6d0a7 100644
    }
  }
  
+diff --git a/src/chatgpt-web-models.ts b/src/chatgpt-web-models.ts
+index 395de23..67140ae 100644
+--- a/src/chatgpt-web-models.ts
++++ b/src/chatgpt-web-models.ts
+@@ -142,9 +142,9 @@ function contextLimits(
+ ): ChatGptWebContextLimits {
+   return {
+     contextWindow,
+-    // Codex reports this effective window in its context indicator. Align it with the practical
+-    // pre-compaction budget instead of exposing an unreachable underlying model window.
+-    effectiveContextWindowPercent: Math.round((autoCompactTokenLimit / contextWindow) * 100),
++    // Codex enforces this percentage as a hard context ceiling. Leave the full window
++    // available so auto-compaction can run before the hard limit is reached.
++    effectiveContextWindowPercent: 100,
+     autoCompactTokenLimit,
+   };
+ }
 diff --git a/src/cli.ts b/src/cli.ts
 index f99db09..ce322b7 100644
 --- a/src/cli.ts
@@ -4798,6 +4815,73 @@ index 42b2f6b..27209e1 100644
    if (options.experimentalFreshConversationPerTurn !== undefined) {
      config.experimentalFreshConversationPerTurn = options.experimentalFreshConversationPerTurn;
    }
+diff --git a/src/turn-metrics.ts b/src/turn-metrics.ts
+new file mode 100644
+index 0000000..c476981
+--- /dev/null
++++ b/src/turn-metrics.ts
+@@ -0,0 +1,61 @@
++import type { AdapterEvent, CodexUsage } from "./types";
++import type { ResponsesTerminalStatus } from "./bridge";
++
++type Outcome = ResponsesTerminalStatus | "cancelled";
++type Sample = { status: Outcome; durationMs: number; ttftMs: number | null; usage?: CodexUsage };
++
++/** Bounded, in-memory numeric diagnostics. Never retain prompts, identities, or error text. */
++export class TurnMetrics {
++  private samples: Sample[] = [];
++
++  begin(startedAt = Date.now()) {
++    let firstAt: number | null = null;
++    let usage: CodexUsage | undefined;
++    let finished = false;
++    const firstOutput = () => { firstAt ??= Date.now(); };
++    return {
++      firstOutput,
++      observe: (event: AdapterEvent) => {
++        if (event.type === "done" || event.type === "incomplete" || event.type === "error") {
++          usage = event.usage ?? usage;
++        }
++      },
++      finish: (status: Outcome) => {
++        if (finished) return;
++        finished = true;
++        const now = Date.now();
++        this.samples.push({ status, durationMs: Math.max(0, now - startedAt),
++          ttftMs: firstAt === null ? null : Math.max(0, firstAt - startedAt), usage });
++        if (this.samples.length > 100) this.samples.shift();
++      },
++    };
++  }
++
++  snapshot() {
++    const samples = this.samples;
++    const count = samples.length;
++    const completed = samples.filter(s => s.status === "completed").length;
++    const failed = samples.filter(s => s.status === "failed").length;
++    const incomplete = samples.filter(s => s.status === "incomplete").length;
++    const cancelled = samples.filter(s => s.status === "cancelled").length;
++    const ttfts = samples.flatMap(s => s.ttftMs === null ? [] : [s.ttftMs]).sort((a, b) => a - b);
++    const percentile = (p: number) => ttfts.length ? ttfts[Math.ceil(ttfts.length * p) - 1] : null;
++    const exact = samples.filter(s => s.usage && s.usage.estimated !== true);
++    const estimated = samples.filter(s => s.usage?.estimated === true);
++    return {
++      count, completed, failed, incomplete, cancelled,
++      success_rate_percent: count - cancelled ? Math.round(100 * completed / (count - cancelled)) : null,
++      ttft_p50_ms: percentile(0.5), ttft_p95_ms: percentile(0.95),
++      duration_avg_ms: count ? Math.round(samples.reduce((sum, s) => sum + s.durationMs, 0) / count) : null,
++      usage: {
++        reported_turns: exact.length,
++        estimated_turns: estimated.length,
++        unreported_turns: count - exact.length - estimated.length,
++        input_tokens: exact.reduce((sum, s) => sum + (s.usage?.inputTokens ?? 0), 0),
++        output_tokens: exact.reduce((sum, s) => sum + (s.usage?.outputTokens ?? 0), 0),
++        estimated_input_tokens: estimated.reduce((sum, s) => sum + (s.usage?.inputTokens ?? 0), 0),
++        estimated_output_tokens: estimated.reduce((sum, s) => sum + (s.usage?.outputTokens ?? 0), 0),
++      },
++    };
++  }
++}
 diff --git a/src/types.ts b/src/types.ts
 index fb0cc72..cccf7e1 100644
 --- a/src/types.ts
@@ -5800,6 +5884,88 @@ index e59da1c..7a11b0f 100644
      evaluate: async () => true,
      locator: (selector: string) => {
        if (selector === CHATGPT_COMPOSER_SELECTOR) return composer;
+diff --git a/tests/chatgpt-web-models.test.ts b/tests/chatgpt-web-models.test.ts
+index 5d5387e..202dc58 100644
+--- a/tests/chatgpt-web-models.test.ts
++++ b/tests/chatgpt-web-models.test.ts
+@@ -131,13 +131,13 @@ describe("fixed ChatGPT Web model routes", () => {
+     };
+     expect(resolveChatGptWebContextLimits(CHATGPT_WEB_ZERO_RISK_BACKEND_MODEL, "low", manual)).toEqual({
+       contextWindow: 123_000,
+-      effectiveContextWindowPercent: 78,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 96_000,
+     });
+     expect(resolveChatGptWebTransportLimits(CHATGPT_WEB_ZERO_RISK_BACKEND_MODEL, "low", manual)).toEqual({});
+     expect(resolveChatGptWebContextLimits(CHATGPT_WEB_ZERO_RISK_PRO_BACKEND_MODEL, "low", manual)).toEqual({
+       contextWindow: 336_579,
+-      effectiveContextWindowPercent: 85,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 285_000,
+     });
+     expect(resolveChatGptWebTransportLimits(CHATGPT_WEB_ZERO_RISK_PRO_BACKEND_MODEL, "low", manual)).toEqual({});
+@@ -150,17 +150,17 @@ describe("fixed ChatGPT Web model routes", () => {
+   test("publishes measured Plus browser windows and compacts before the transport ceiling", () => {
+     expect(resolveChatGptWebContextLimits(CHATGPT_WEB_BACKEND_MODEL, "low", plus)).toEqual({
+       contextWindow: 41_000,
+-      effectiveContextWindowPercent: 78,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 32_000,
+     });
+     expect(resolveChatGptWebContextLimits(CHATGPT_WEB_BACKEND_MODEL, "medium", plus)).toEqual({
+       contextWindow: 90_000,
+-      effectiveContextWindowPercent: 89,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 80_000,
+     });
+     expect(resolveChatGptWebContextLimits(CHATGPT_WEB_BACKEND_MODEL, "high", plus)).toEqual({
+       contextWindow: 90_000,
+-      effectiveContextWindowPercent: 89,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 80_000,
+     });
+     expect(resolveChatGptWebTransportLimits(CHATGPT_WEB_BACKEND_MODEL, "low", plus)).toEqual({
+@@ -176,19 +176,19 @@ describe("fixed ChatGPT Web model routes", () => {
+   test("publishes the usable Pro browser window instead of the unreachable underlying model window", () => {
+     expect(resolveChatGptWebContextLimits(CHATGPT_WEB_BACKEND_MODEL, "low", pro)).toEqual({
+       contextWindow: 111_193,
+-      effectiveContextWindowPercent: 85,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 95_000,
+     });
+     for (const effort of ["medium", "high", "xhigh"] as const) {
+       expect(resolveChatGptWebContextLimits(CHATGPT_WEB_BACKEND_MODEL, effort, pro)).toEqual({
+         contextWindow: 111_193,
+-        effectiveContextWindowPercent: 85,
++        effectiveContextWindowPercent: 100,
+         autoCompactTokenLimit: 95_000,
+       });
+     }
+     expect(resolveChatGptWebContextLimits(CHATGPT_WEB_BACKEND_MODEL, "max", pro)).toEqual({
+       contextWindow: 112_193,
+-      effectiveContextWindowPercent: 85,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 95_000,
+     });
+     expect(resolveChatGptWebTransportLimits(CHATGPT_WEB_BACKEND_MODEL, "low", pro)).toEqual({
+@@ -243,7 +243,7 @@ describe("fixed ChatGPT Web model routes", () => {
+       experimentalBiggerContext: true,
+     })).toEqual({
+       contextWindow: 336_579,
+-      effectiveContextWindowPercent: 85,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 285_000,
+     });
+     expect(resolveChatGptWebContextLimits(CHATGPT_WEB_LUNA_BACKEND_MODEL, "low", {
+@@ -252,7 +252,7 @@ describe("fixed ChatGPT Web model routes", () => {
+       experimentalBiggerContext: true,
+     })).toEqual({
+       contextWindow: 84_000,
+-      effectiveContextWindowPercent: 71,
++      effectiveContextWindowPercent: 100,
+       autoCompactTokenLimit: 59_424,
+     });
+   });
 diff --git a/tests/cli.test.ts b/tests/cli.test.ts
 index a403529..e01070e 100644
 --- a/tests/cli.test.ts
@@ -6359,6 +6525,62 @@ index 2ebc626..c4925d2 100644
    });
    const internal = client as unknown as {
      child: unknown;
+diff --git a/tests/model-catalog.test.ts b/tests/model-catalog.test.ts
+index 6d18227..ed77847 100644
+--- a/tests/model-catalog.test.ts
++++ b/tests/model-catalog.test.ts
+@@ -100,6 +100,19 @@ describe("native /models augmentation", () => {
+     }, { ...config, proAvailable: false })).toThrow("Cannot group different context budgets");
+   });
+ 
++  test("keeps compaction headroom below Codex's enforced context ceiling", () => {
++    for (const proAvailable of [false, true]) {
++      for (const experimentalBiggerContext of [false, true]) {
++        const config = { ...defaultConfig("full"), proAvailable, extraHighAvailable: proAvailable, experimentalBiggerContext };
++        const models = augmentNativeModelCatalog(source(), config).models as Array<Record<string, unknown>>;
++        for (const model of models.filter(row => String(row.slug).startsWith("chatgpt-web/"))) {
++          const ceiling = Math.floor(Number(model.context_window) * Number(model.effective_context_window_percent) / 100);
++          expect(ceiling - Number(model.auto_compact_token_limit)).toBeGreaterThanOrEqual(4_096);
++        }
++      }
++    }
++  });
++
+   test("publishes Bigger Context limits in the Codex model catalog", () => {
+     const config = defaultConfig("full");
+     config.extraHighAvailable = true;
+@@ -230,14 +243,14 @@ describe("native /models augmentation", () => {
+       effectiveContextWindowPercent: model.effective_context_window_percent,
+       autoCompactTokenLimit: model.auto_compact_token_limit,
+     }))).toEqual([
+-      { contextWindow: 41_000, effectiveContextWindowPercent: 78, autoCompactTokenLimit: 32_000 },
+-      { contextWindow: 90_000, effectiveContextWindowPercent: 89, autoCompactTokenLimit: 80_000 },
+-      { contextWindow: 41_000, effectiveContextWindowPercent: 78, autoCompactTokenLimit: 32_000 },
+-      { contextWindow: 90_000, effectiveContextWindowPercent: 89, autoCompactTokenLimit: 80_000 },
+-      { contextWindow: 41_000, effectiveContextWindowPercent: 78, autoCompactTokenLimit: 32_000 },
+-      { contextWindow: 90_000, effectiveContextWindowPercent: 89, autoCompactTokenLimit: 80_000 },
+-      { contextWindow: 90_000, effectiveContextWindowPercent: 89, autoCompactTokenLimit: 80_000 },
+-      { contextWindow: 90_000, effectiveContextWindowPercent: 89, autoCompactTokenLimit: 80_000 },
++      { contextWindow: 41_000, effectiveContextWindowPercent: 100, autoCompactTokenLimit: 32_000 },
++      { contextWindow: 90_000, effectiveContextWindowPercent: 100, autoCompactTokenLimit: 80_000 },
++      { contextWindow: 41_000, effectiveContextWindowPercent: 100, autoCompactTokenLimit: 32_000 },
++      { contextWindow: 90_000, effectiveContextWindowPercent: 100, autoCompactTokenLimit: 80_000 },
++      { contextWindow: 41_000, effectiveContextWindowPercent: 100, autoCompactTokenLimit: 32_000 },
++      { contextWindow: 90_000, effectiveContextWindowPercent: 100, autoCompactTokenLimit: 80_000 },
++      { contextWindow: 90_000, effectiveContextWindowPercent: 100, autoCompactTokenLimit: 80_000 },
++      { contextWindow: 90_000, effectiveContextWindowPercent: 100, autoCompactTokenLimit: 80_000 },
+     ]);
+   });
+ 
+@@ -278,7 +291,7 @@ describe("native /models augmentation", () => {
+       supported_reasoning_levels: [{ effort: "low", description: CHATGPT_WEB_ZERO_RISK_MODEL_ROUTE.displayName }],
+       context_window: CHATGPT_WEB_ZERO_RISK_CONTEXT_WINDOW,
+       max_context_window: CHATGPT_WEB_ZERO_RISK_CONTEXT_WINDOW,
+-      effective_context_window_percent: 78,
++      effective_context_window_percent: 100,
+       auto_compact_token_limit: 96_000,
+     });
+ 
 diff --git a/tests/native-passthrough.test.ts b/tests/native-passthrough.test.ts
 index 04806dc..577e895 100644
 --- a/tests/native-passthrough.test.ts
@@ -7393,6 +7615,19 @@ index 5e15696..802f229 100644
  test("an abandoned catalog attempt serves the retry once and is cancelled when nobody returns", async () => {
    const fetches = new ModelCatalogFetches(40, 500);
    const upstream: Array<{ signal: AbortSignal; respond: () => void }> = [];
+diff --git a/tests/server-models.test.ts b/tests/server-models.test.ts
+index 0911a40..2fcfd81 100644
+--- a/tests/server-models.test.ts
++++ b/tests/server-models.test.ts
+@@ -163,7 +163,7 @@ test("Zero Risk returns one generic Web row without using scanned capabilities",
+     input_modalities: ["text"],
+     context_window: 123_000,
+     max_context_window: 123_000,
+-    effective_context_window_percent: 78,
++    effective_context_window_percent: 100,
+     auto_compact_token_limit: 96_000,
+     additional_speed_tiers: [],
+     service_tiers: [],
 diff --git a/tests/server-predictions.test.ts b/tests/server-predictions.test.ts
 index 735f91a..bcd5f7e 100644
 --- a/tests/server-predictions.test.ts
@@ -7514,73 +7749,6 @@ index 6545e1d..73ef18d 100644
  });
  
  test("settled replay sessions expire from their last use instead of their creation time", async () => {
-diff --git a/src/turn-metrics.ts b/src/turn-metrics.ts
-new file mode 100644
-index 0000000..c476981
---- /dev/null
-+++ b/src/turn-metrics.ts
-@@ -0,0 +1,61 @@
-+import type { AdapterEvent, CodexUsage } from "./types";
-+import type { ResponsesTerminalStatus } from "./bridge";
-+
-+type Outcome = ResponsesTerminalStatus | "cancelled";
-+type Sample = { status: Outcome; durationMs: number; ttftMs: number | null; usage?: CodexUsage };
-+
-+/** Bounded, in-memory numeric diagnostics. Never retain prompts, identities, or error text. */
-+export class TurnMetrics {
-+  private samples: Sample[] = [];
-+
-+  begin(startedAt = Date.now()) {
-+    let firstAt: number | null = null;
-+    let usage: CodexUsage | undefined;
-+    let finished = false;
-+    const firstOutput = () => { firstAt ??= Date.now(); };
-+    return {
-+      firstOutput,
-+      observe: (event: AdapterEvent) => {
-+        if (event.type === "done" || event.type === "incomplete" || event.type === "error") {
-+          usage = event.usage ?? usage;
-+        }
-+      },
-+      finish: (status: Outcome) => {
-+        if (finished) return;
-+        finished = true;
-+        const now = Date.now();
-+        this.samples.push({ status, durationMs: Math.max(0, now - startedAt),
-+          ttftMs: firstAt === null ? null : Math.max(0, firstAt - startedAt), usage });
-+        if (this.samples.length > 100) this.samples.shift();
-+      },
-+    };
-+  }
-+
-+  snapshot() {
-+    const samples = this.samples;
-+    const count = samples.length;
-+    const completed = samples.filter(s => s.status === "completed").length;
-+    const failed = samples.filter(s => s.status === "failed").length;
-+    const incomplete = samples.filter(s => s.status === "incomplete").length;
-+    const cancelled = samples.filter(s => s.status === "cancelled").length;
-+    const ttfts = samples.flatMap(s => s.ttftMs === null ? [] : [s.ttftMs]).sort((a, b) => a - b);
-+    const percentile = (p: number) => ttfts.length ? ttfts[Math.ceil(ttfts.length * p) - 1] : null;
-+    const exact = samples.filter(s => s.usage && s.usage.estimated !== true);
-+    const estimated = samples.filter(s => s.usage?.estimated === true);
-+    return {
-+      count, completed, failed, incomplete, cancelled,
-+      success_rate_percent: count - cancelled ? Math.round(100 * completed / (count - cancelled)) : null,
-+      ttft_p50_ms: percentile(0.5), ttft_p95_ms: percentile(0.95),
-+      duration_avg_ms: count ? Math.round(samples.reduce((sum, s) => sum + s.durationMs, 0) / count) : null,
-+      usage: {
-+        reported_turns: exact.length,
-+        estimated_turns: estimated.length,
-+        unreported_turns: count - exact.length - estimated.length,
-+        input_tokens: exact.reduce((sum, s) => sum + (s.usage?.inputTokens ?? 0), 0),
-+        output_tokens: exact.reduce((sum, s) => sum + (s.usage?.outputTokens ?? 0), 0),
-+        estimated_input_tokens: estimated.reduce((sum, s) => sum + (s.usage?.inputTokens ?? 0), 0),
-+        estimated_output_tokens: estimated.reduce((sum, s) => sum + (s.usage?.outputTokens ?? 0), 0),
-+      },
-+    };
-+  }
-+}
 diff --git a/tests/turn-metrics.test.ts b/tests/turn-metrics.test.ts
 new file mode 100644
 index 0000000..d49851f

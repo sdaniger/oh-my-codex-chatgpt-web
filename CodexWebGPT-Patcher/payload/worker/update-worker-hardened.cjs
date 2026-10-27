@@ -14,7 +14,7 @@ const { spawn, spawnSync } = require("node:child_process");
 
 const HARDENING_ROOT = process.env.CODEX_WEB_GPT_HARDENING_ROOT
   ? path.resolve(process.env.CODEX_WEB_GPT_HARDENING_ROOT)
-  : path.join(os.homedir(), ".codex-chatgpt-web", "codex-web-patcher-b3bf61ad7418b264");
+  : path.join(os.homedir(), ".codex-chatgpt-web", "codex-web-patcher-7a2674e73e1833ac");
 const BRIDGE = path.join(HARDENING_ROOT, "bin", "update-bridge.py");
 const PYTHON = "/usr/bin/python3";
 

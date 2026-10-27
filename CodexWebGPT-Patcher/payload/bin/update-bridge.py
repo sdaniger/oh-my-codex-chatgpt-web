@@ -37,7 +37,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 ROOT = pathlib.Path(
-    os.environ.get("CODEX_WEB_GPT_HARDENING_ROOT", str(pathlib.Path.home() / ".codex-chatgpt-web" / "codex-web-patcher-b3bf61ad7418b264"))
+    os.environ.get("CODEX_WEB_GPT_HARDENING_ROOT", str(pathlib.Path.home() / ".codex-chatgpt-web" / "codex-web-patcher-7a2674e73e1833ac"))
 ).resolve()
 APP = pathlib.Path("/Applications/Codex Web GPT.app")
 APP_RUNTIME = APP / "Contents/Resources/runtime"
@@ -507,7 +507,7 @@ def inject_guard(text: str) -> tuple[str, bool]:
         helper_anchor = "const UPDATE_CHECK_RETRY_DELAYS_MS = [60_000, 5 * 60_000, 30 * 60_000];\n"
         helper = f"""// {GUARD_MARKER}
 function hardeningGuard(version) {{
-  const script = path.join(os.homedir(), ".codex-chatgpt-web", "codex-web-patcher-b3bf61ad7418b264", "bin", "update-bridge.py");
+  const script = path.join(os.homedir(), ".codex-chatgpt-web", "codex-web-patcher-7a2674e73e1833ac", "bin", "update-bridge.py");
   if (!fs.existsSync(script)) return {{ ok: false, message: `hardening bridge is missing: ${{script}}` }};
   const result = spawnSync("/usr/bin/python3", [script, "guard", "--version", version, "--require-idle"], {{
     encoding: "utf8",
