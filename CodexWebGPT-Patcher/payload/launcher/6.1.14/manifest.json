@@ -5,7 +5,7 @@
   "files": [
     {
       "path": "electron/browser-host.cjs",
-      "baseSha256": "d8b758658f18b883f04bb5a9e6ddeb88b4e971dc224d21c5c0f30db8be4aae1b",
+      "baseSha256": "ede1f49b7a8fbedfa201152cd76c50582e2657058c88f7189f09975aec31b916",
       "sha256": "232c8397461079a3778a5bd19d586017bc462d3c7b191672c0ce8d4f6fc3d068"
     },
     {

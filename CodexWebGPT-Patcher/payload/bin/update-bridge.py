@@ -37,7 +37,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 ROOT = pathlib.Path(
-    os.environ.get("CODEX_WEB_GPT_HARDENING_ROOT", str(pathlib.Path.home() / ".codex-chatgpt-web" / "codex-web-patcher-7a2674e73e1833ac"))
+    os.environ.get("CODEX_WEB_GPT_HARDENING_ROOT", str(pathlib.Path.home() / ".codex-chatgpt-web" / "codex-web-patcher-b7fd8ec8ab69efe2a1"))
 ).resolve()
 APP = pathlib.Path("/Applications/Codex Web GPT.app")
 APP_RUNTIME = APP / "Contents/Resources/runtime"
@@ -501,13 +501,19 @@ def inject_guard(text: str) -> tuple[str, bool]:
     # had no tag comment) is upgraded without duplicating the early guard.
     has_early = "hardeningGuard(candidate.version)" in text
     has_late = "hardeningGuard(available.version)" in text
+    if has_helper:
+        old_script = r'(?m)(^function hardeningGuard\(version\) \{\n)  const script = path\.join\(os\.homedir\(\), "\.codex-chatgpt-web", "(?:hardening|codex-web-patcher-[0-9a-f]+)", "bin", "update-bridge\.py"\);$'
+        new_script = '  const script = path.join(os.homedir(), ".codex-chatgpt-web", "codex-web-patcher-b7fd8ec8ab69efe2a1", "bin", "update-bridge.py");'
+        text, count = re.subn(old_script, lambda match: match.group(1) + new_script, text, count=1)
+        if count != 1:
+            return original, False
     if has_helper and has_early and has_late:
         return text, True
     if not has_helper:
         helper_anchor = "const UPDATE_CHECK_RETRY_DELAYS_MS = [60_000, 5 * 60_000, 30 * 60_000];\n"
         helper = f"""// {GUARD_MARKER}
 function hardeningGuard(version) {{
-  const script = path.join(os.homedir(), ".codex-chatgpt-web", "codex-web-patcher-7a2674e73e1833ac", "bin", "update-bridge.py");
+  const script = path.join(os.homedir(), ".codex-chatgpt-web", "codex-web-patcher-b7fd8ec8ab69efe2a1", "bin", "update-bridge.py");
   if (!fs.existsSync(script)) return {{ ok: false, message: `hardening bridge is missing: ${{script}}` }};
   const result = spawnSync("/usr/bin/python3", [script, "guard", "--version", version, "--require-idle"], {{
     encoding: "utf8",

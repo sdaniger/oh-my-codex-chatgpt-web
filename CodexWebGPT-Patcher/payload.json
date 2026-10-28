@@ -1,20 +1,20 @@
 {
   "version": "6.1.14",
-  "stateDirectory": "codex-web-patcher-787e9819d2fd4c2c",
-  "bundleId": "787e9819d2fd4c2c0aed0e6d4fe7629bc9d73abbe7288e8001a30ff5d97fd759",
+  "stateDirectory": "codex-web-patcher-b7fd8ec8ab69efe2a1",
+  "bundleId": "b7fd8ec8ab69efe242b3d9fae68e16179f803e113b154d403f51f62b8baeec1f",
   "vanillaUpdaterFiles": {
     "electron/update.cjs": "2fc0a412aed9967ac46e973368d69cc237b3e9e7f4501f8cbb18f9977ec7f48a",
     "electron/update-worker.cjs": "faa240cace42a6bac39217b4cc62f15a820b2e201805153232fd678b741b08f9"
   },
   "payloadFiles": {
-    "bin/update-bridge.py": "6cfb152ce117aa77118b4ceb5212d5a7d87185f6fd69af117ff966f30b62cae4",
+    "bin/update-bridge.py": "d88cc4ce970f27d7ec3b9188006feca0d054ba8c8225144a622b4f19f0515193",
     "bin/asar-tool.cjs": "ccf71590f0f29e633ba44f5681c1a46d3d76373cf96afd3ec57d0b3ba048342f",
-    "worker/update-worker-hardened.cjs": "a9510ba7c7439c3f929114500a62ea617b9ab90366603988ce6a95ae7b856280",
+    "worker/update-worker-hardened.cjs": "45f26b384dac3915b40ff513071f41fb3d4676b845023ef146bc63c8816f7090",
     "launcher-entitlements.plist": "227d812c3cfe9b32ccb0a3bb9850bbaa4429105aeed7cd263ab415ddf5dd4fa9",
-    "launcher/6.1.14/manifest.json": "a73493c36a6438b4a211c62ccb560ea36fd85343afa0410def66295d5ed4ba3d",
-    "versions/6.1.14/metadata.json": "6eb9e85fafbd02e2f194d106f53bb2d6373fea136ea842675596186de4f405a7",
-    "versions/6.1.14/runtime/manifest.json": "4b89ea759a4739f66f5678a0e417f9aa8b4f70063f01037b4813d4e8dd0616ef",
-    "patch/hermes-codexweb-hardening-6.1.14.patch": "daef91a7c3dba2d0be27011c27a87406006f4d1c689356000318e5dd5e754bed",
+    "launcher/6.1.14/manifest.json": "79762c9dc668907ede2ecbe75f85abe11a148c611dce43deb58c99a64552147f",
+    "versions/6.1.14/metadata.json": "a9dadd2851c7bc9097a41b780741464ebd8ffbf09fe35bfdba421872de182640",
+    "versions/6.1.14/runtime/manifest.json": "c16195c1920a937fea98e0897c336c47187cae38f30abdbcd5cbf58f0e45f9af",
+    "patch/hermes-codexweb-hardening-6.1.14.patch": "3b55b13eeb831b9027f55cc4a94d6abb10da8b3f19b68ae1fe11a1e5788404e6",
     "launcher/6.1.14/files/dist/assets/index-D6FawXKA.css": "b9d4dc2d56856ff5bfb75043c93d0c6b80a903338526ca4dd830ecd5c6c5e8a3",
     "launcher/6.1.14/files/dist/assets/index-D9DkY-ud.js": "d9fae22ba4b63edf75f8c925b8a2723b02aa96d8e054fc0a4347549b96dfd79c",
     "launcher/6.1.14/files/electron/browser-helper-verifier.cjs": "1610c423bd5e28ba63ff3d0a1d03b5f7f942ea5d6dd8bd40b7a3b19fc8c24fb8",

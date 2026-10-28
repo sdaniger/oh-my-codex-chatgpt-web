@@ -2,12 +2,12 @@
   "version": "6.1.14",
   "sourceTag": "v6.1.14",
   "sourceCommit": "cfeaf04bc7f54cea29e1ff2adbcad63bd038b119",
-  "patchSha256": "daef91a7c3dba2d0be27011c27a87406006f4d1c689356000318e5dd5e754bed",
+  "patchSha256": "3b55b13eeb831b9027f55cc4a94d6abb10da8b3f19b68ae1fe11a1e5788404e6",
   "patchMode": "applied",
-  "bundleId": "787e9819d2fd4c2c0aed0e6d4fe7629bc9d73abbe7288e8001a30ff5d97fd759",
+  "bundleId": "b7fd8ec8ab69efe242b3d9fae68e16179f803e113b154d403f51f62b8baeec1f",
   "fileCount": 4899,
   "bunVersion": "1.4.0",
-  "builtAt": "2026-10-28T06:36:08Z",
+  "builtAt": "2026-10-28T10:12:48Z",
   "sourceDir": "prepared-payload",
   "tests": "skipped"
 }

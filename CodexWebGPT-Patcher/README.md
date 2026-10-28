@@ -2,6 +2,8 @@
 
 macOS Apple Silicon 用のバニラ版 Codex Web GPT **6.1.14** から、これまでの修正を含むアプリのコピーを作成します。ブラウザー処理は最大5件を同時実行し、それを超える依頼は空き枠を待ちます。セッション保護、接続復旧、更新保護、性能表示も含みます。
 
+送信後にブラウザーの観察接続が切れた場合、元のタブを特定できれば同じタブに再接続します。送信済みの依頼は再送しません。
+
 ```bash
 ./apply.sh --app '/Applications/Codex Web GPT.app' --output '/Applications/Codex Web GPT Patched.app'
 ```
