@@ -1,12 +1,12 @@
 # Codex Web GPT パッチャー
 
-macOS Apple Silicon 用のバニラ版 Codex Web GPT **6.1.14** から、これまでの修正を含むアプリのコピーを作成します。10件の同時ブラウザー処理、セッション保護、接続復旧、更新保護、性能表示を含みます。
+macOS Apple Silicon 用のバニラ版 Codex Web GPT **6.1.14** から、これまでの修正を含むアプリのコピーを作成します。ブラウザー処理は最大5件を同時実行し、それを超える依頼は空き枠を待ちます。セッション保護、接続復旧、更新保護、性能表示も含みます。
 
 ```bash
-python3 patcher.py --app '/Applications/Codex Web GPT.app' --output '/Applications/Codex Web GPT Patched.app'
+./apply.sh --app '/Applications/Codex Web GPT.app' --output '/Applications/Codex Web GPT Patched.app'
 ```
 
-入力と出力の省略時も上記のパスです。出力先が既にある場合や、入力が対応するバニラ版と一致しない場合は処理を止めます。元のアプリを上書きせず、既存のログイン情報やチャットも変更しません。
+`CodexWebGPT-Patcher` ディレクトリーで実行してください。引数を省略すると、既定の入力・出力パスを使います。出力先が既にある場合や、入力が対応するバニラ版と一致しない場合は処理を止めます。元のアプリを上書きせず、既存のログイン情報やチャットも変更しません。Python 3 が必要です。
 
 完成したアプリはコピーとして作成されます。切り替える前に、元アプリと実行中の処理を終了してください。両方のアプリは同じアプリID・ユーザーデータを使うため、同時起動は避けてください。署名はローカルのad-hoc署名です。更新保護のため、必要な検証済みファイルは初回実行時に `~/.codex-chatgpt-web/` 内へ保存されます。
 

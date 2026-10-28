@@ -1,7 +1,7 @@
 {
   "version": "6.1.14",
-  "stateDirectory": "codex-web-patcher-7a2674e73e1833ac",
-  "bundleId": "7a2674e73e1833ace28073c6a6097bb8af0bc4d5e1f827ec23665e9fdaf5ddb1",
+  "stateDirectory": "codex-web-patcher-787e9819d2fd4c2c",
+  "bundleId": "787e9819d2fd4c2c0aed0e6d4fe7629bc9d73abbe7288e8001a30ff5d97fd759",
   "vanillaUpdaterFiles": {
     "electron/update.cjs": "2fc0a412aed9967ac46e973368d69cc237b3e9e7f4501f8cbb18f9977ec7f48a",
     "electron/update-worker.cjs": "faa240cace42a6bac39217b4cc62f15a820b2e201805153232fd678b741b08f9"
@@ -12,9 +12,9 @@
     "worker/update-worker-hardened.cjs": "a9510ba7c7439c3f929114500a62ea617b9ab90366603988ce6a95ae7b856280",
     "launcher-entitlements.plist": "227d812c3cfe9b32ccb0a3bb9850bbaa4429105aeed7cd263ab415ddf5dd4fa9",
     "launcher/6.1.14/manifest.json": "a73493c36a6438b4a211c62ccb560ea36fd85343afa0410def66295d5ed4ba3d",
-    "versions/6.1.14/metadata.json": "29dbc50832d79d485045b149bfd4ec10f8a9bad1c5b9b60eab7a22ff27e44392",
-    "versions/6.1.14/runtime/manifest.json": "f82caf87b36193386b15d2b7833011e618a7634f1cbda7031df1ed60ce0bd342",
-    "patch/hermes-codexweb-hardening-6.1.14.patch": "78aba45f3b6726a4bb511e157f4baa286d01f20186e3dbca05016e6afac04ee9",
+    "versions/6.1.14/metadata.json": "6eb9e85fafbd02e2f194d106f53bb2d6373fea136ea842675596186de4f405a7",
+    "versions/6.1.14/runtime/manifest.json": "4b89ea759a4739f66f5678a0e417f9aa8b4f70063f01037b4813d4e8dd0616ef",
+    "patch/hermes-codexweb-hardening-6.1.14.patch": "daef91a7c3dba2d0be27011c27a87406006f4d1c689356000318e5dd5e754bed",
     "launcher/6.1.14/files/dist/assets/index-D6FawXKA.css": "b9d4dc2d56856ff5bfb75043c93d0c6b80a903338526ca4dd830ecd5c6c5e8a3",
     "launcher/6.1.14/files/dist/assets/index-D9DkY-ud.js": "d9fae22ba4b63edf75f8c925b8a2723b02aa96d8e054fc0a4347549b96dfd79c",
     "launcher/6.1.14/files/electron/browser-helper-verifier.cjs": "1610c423bd5e28ba63ff3d0a1d03b5f7f942ea5d6dd8bd40b7a3b19fc8c24fb8",

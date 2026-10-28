@@ -6,13 +6,19 @@ Codex Web GPT **6.1.14 (macOS Apple Silicon)** 用のパッチャーです。バ
 
 ## 使い方
 
-1. [配布ZIP](CodexWebGPT-Patcher-6.1.14-macos-arm64.zip) をダウンロードして展開します。
-2. ターミナルで展開した `CodexWebGPT-Patcher` フォルダーへ移動します。
-3. 次のコマンドを実行します。
+macOS Apple Silicon のターミナルで次のコマンドを実行すると、GitHubから取得したパッチャーが既定の場所にアプリのコピーを作成します。
 
-   ```bash
-   python3 patcher.py --app '/Applications/Codex Web GPT.app' --output '/Applications/Codex Web GPT Patched.app'
-   ```
+```sh
+curl -fsSL https://raw.githubusercontent.com/sdaniger/oh-my-codex-chatgpt-web/main/install.sh | sh
+```
+
+元アプリや出力先を変更する場合は、引数を渡します。
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/sdaniger/oh-my-codex-chatgpt-web/main/install.sh | sh -s -- --app '/Applications/Codex Web GPT.app' --output '/Applications/Codex Web GPT Patched.app'
+```
+
+`curl` と Python 3 が必要です。手動で使う場合は[配布ZIP](CodexWebGPT-Patcher-6.1.14-macos-arm64.zip)をダウンロードして展開し、`CodexWebGPT-Patcher/apply.sh` を実行してください。
 
 元アプリは上書きせず、別のアプリを作成します。既存の出力先がある場合は処理を中止します。元アプリとパッチ済みアプリは同じユーザーデータを使用するため、同時起動は避けてください。
 
